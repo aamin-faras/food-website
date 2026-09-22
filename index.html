@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L'Aura Bistro | Artisanal Dining & Culinary Experiences</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Playfair Display & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+          },
+          colors: {
+            brand: {
+              amber: '#E07A5F',
+              gold: '#DDA15E',
+              dark: '#1F2421',
+              charcoal: '#282C28',
+              cream: '#FAF8F5',
+              olive: '#4B5842'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass-nav {
+      background: rgba(31, 36, 33, 0.88);
+      backdrop-filter: blur(12px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #DDA15E;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-cream text-brand-dark font-sans selection:bg-brand-gold selection:text-white antialiased">
+  
+  <!-- Floating Toast Notification System (No alert() used) -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-32 opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 bg-brand-dark text-white px-5 py-4 rounded-2xl shadow-2xl border border-brand-gold/30">
+    <div id="toastIcon" class="text-brand-gold">
+      <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+    </div>
+    <div>
+      <h4 id="toastTitle" class="font-semibold text-sm">Notice</h4>
+      <p id="toastMessage" class="text-xs text-stone-300">Action performed successfully.</p>
+    </div>
+  </div>
+
+  <!-- Cart Flyout Drawer -->
+  <div id="cartModal" class="fixed inset-0 z-50 overflow-hidden hidden" aria-modal="true">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="toggleCart()"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-brand-cream shadow-2xl flex flex-col justify-between">
+        <div class="p-6 border-b border-stone-200 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="shopping-bag" class="w-6 h-6 text-brand-amber"></i>
+            <h3 class="font-serif text-2xl font-bold">Your Order (<span id="cartCount">0</span>)</h3>
+          </div>
+          <button onclick="toggleCart()" class="text-stone-400 hover:text-stone-700 p-1.5 rounded-lg transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+        
+        <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+          <!-- Populated via JavaScript -->
+          <div id="emptyCartNotice" class="text-center py-16 text-stone-400">
+            <i data-lucide="utensils" class="w-12 h-12 mx-auto mb-3 opacity-40"></i>
+            <p>Your culinary tray is empty.</p>
+          </div>
+        </div>
+
+        <div class="p-6 bg-white border-t border-stone-200 space-y-4">
+          <div class="flex justify-between items-center text-lg font-bold">
+            <span>Estimated Total:</span>
+            <span id="cartTotal" class="text-brand-amber font-serif text-2xl">$0.00</span>
+          </div>
+          <button onclick="checkoutOrder()" class="w-full py-3.5 bg-brand-amber text-white font-medium rounded-xl hover:bg-orange-700 transition shadow-lg shadow-brand-amber/30 flex items-center justify-center space-x-2">
+            <span>Proceed to Checkout</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="fixed top-0 inset-x-0 z-40 glass-nav border-b border-white/10 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand Logo -->
+        <a href="#home" class="flex items-center space-x-3 group">
+          <span class="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-amber to-brand-gold flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="chef-hat" class="w-5 h-5"></i>
+          </span>
+          <div class="leading-tight">
+            <span class="font-serif font-bold text-2xl tracking-wider text-white block">L'AURA</span>
+            <span class="text-[10px] uppercase font-sans tracking-widest text-brand-gold block font-semibold">Artisanal Bistro</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-stone-200">
+          <a href="#home" class="hover:text-brand-gold transition-colors">Home</a>
+          <a href="#about" class="hover:text-brand-gold transition-colors">About Us</a>
+          <a href="#menu" class="hover:text-brand-gold transition-colors">Menu</a>
+          <a href="#specials" class="hover:text-brand-gold transition-colors">Specials</a>
+          <a href="#testimonials" class="hover:text-brand-gold transition-colors">Reviews</a>
+          <a href="#contact" class="hover:text-brand-gold transition-colors">Contact</a>
+        </nav>
+
+        <!-- Action Items (Cart & Reservation Button) -->
+        <div class="flex items-center space-x-4">
+          <button onclick="toggleCart()" class="relative p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all" aria-label="Open Order Cart">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span id="cartBadge" class="absolute -top-1 -right-1 bg-brand-amber text-white text-[11px] font-bold h-5 w-5 rounded-full flex items-center justify-center">0</span>
+          </button>
+          
+          <button onclick="openReservationModal()" class="hidden sm:inline-flex items-center space-x-2 bg-brand-gold text-brand-dark px-5 py-2.5 rounded-full font-semibold text-sm hover:bg-yellow-500 transition-all shadow-md">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+            <span>Book Table</span>
+          </button>
+
+          <!-- Mobile Hamburger Menu Button -->
+          <button onclick="toggleMobileMenu()" class="md:hidden text-white p-2 focus:outline-none" aria-label="Toggle Mobile Menu">
+            <i id="menuIcon" data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileMenu" class="hidden md:hidden bg-brand-charcoal/95 border-b border-white/10 px-4 pt-2 pb-6 space-y-3">
+      <a href="#home" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium border-b border-white/5">Home</a>
+      <a href="#about" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium border-b border-white/5">About</a>
+      <a href="#menu" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium border-b border-white/5">Menu</a>
+      <a href="#specials" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium border-b border-white/5">Specials</a>
+      <a href="#testimonials" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium border-b border-white/5">Reviews</a>
+      <a href="#contact" onclick="toggleMobileMenu()" class="block py-2 text-stone-200 hover:text-brand-gold font-medium">Contact</a>
+      <button onclick="toggleMobileMenu(); openReservationModal();" class="w-full mt-3 py-3 bg-brand-gold text-brand-dark rounded-xl font-bold text-center block">
+        Book a Table
+      </button>
+    </div>
+  </header>
+
+  <section id="home" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden bg-brand-dark">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=2000&q=80" 
+           alt="Restaurant ambiance" 
+           class="w-full h-full object-cover opacity-35 scale-105 transition-transform duration-1000 ease-out"
+           onerror="this.src='https://placehold.co/1920x1080/1f2421/ffffff?text=L+Aura+Bistro'"/>
+      <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/60 to-transparent"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white mt-10">
+      <span class="inline-block py-1 px-4 mb-4 rounded-full border border-brand-gold/40 text-brand-gold text-xs sm:text-sm font-semibold uppercase tracking-widest bg-brand-gold/10">
+        Authentic Flavors &amp; Hearthside Elegance
+      </span>
+      <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-tight sm:leading-none mb-6">
+        An Unforgettable <br class="hidden sm:inline"/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-orange-300 to-brand-amber">Gastronomic Odyssey</span>
+      </h1>
+      <p class="max-w-2xl mx-auto text-base sm:text-lg text-stone-300 font-light mb-8 sm:mb-10 leading-relaxed">
+        Crafted with organic harvest and unyielding passion. Experience world-class seasonal dining designed to ignite conversation and enchant your senses.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#menu" class="w-full sm:w-auto px-8 py-4 bg-brand-amber hover:bg-orange-700 text-white font-semibold rounded-full shadow-lg shadow-brand-amber/30 transition transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+          <span>Explore Our Menu</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </a>
+        <button onclick="openReservationModal()" class="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white font-semibold rounded-full transition transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-brand-gold"></i>
+          <span>Reserve a Table</span>
+        </button>
+      </div>
+
+      <!-- Quick Badges -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 pt-10 border-t border-white/10 text-stone-400 text-xs sm:text-sm font-medium">
+        <div class="flex items-center justify-center space-x-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand-gold"></i>
+          <span>Michelin Star Nominee</span>
+        </div>
+        <div class="flex items-center justify-center space-x-2">
+          <i data-lucide="leaf" class="w-4 h-4 text-brand-gold"></i>
+          <span>100% Farm-To-Table</span>
+        </div>
+        <div class="flex items-center justify-center space-x-2">
+          <i data-lucide="wine" class="w-4 h-4 text-brand-gold"></i>
+          <span>Curated Wine Cellar</span>
+        </div>
+        <div class="flex items-center justify-center space-x-2">
+          <i data-lucide="clock" class="w-4 h-4 text-brand-gold"></i>
+          <span>Open Tue-Sun: 5PM-11PM</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <!-- Story / Text Content -->
+        <div>
+          <span class="text-brand-amber uppercase tracking-wider font-semibold text-xs sm:text-sm">Our Heritage</span>
+          <h2 class="font-serif text-3xl sm:text-5xl font-bold text-brand-dark mt-2 mb-6 leading-tight">
+            Passion Born in Florence, <br class="hidden sm:inline"/>Perfected for Modern Taste.
+          </h2>
+          <p class="text-stone-600 mb-6 leading-relaxed">
+            Founded in 2012 by Executive Chef Mateo Rossi, L’Aura began with a solitary clay oven and a relentless dedication to Mediterranean craftsmanship. We work with local artisan growers and regional foragers to curate ingredients that honor each season.
+          </p>
+          <div class="grid grid-cols-2 gap-6 my-8">
+            <div class="border-l-4 border-brand-gold pl-4">
+              <span class="block text-3xl font-serif font-bold text-brand-dark">14+</span>
+              <span class="text-xs sm:text-sm text-stone-500 uppercase tracking-wider">Years of Mastery</span>
+            </div>
+            <div class="border-l-4 border-brand-amber pl-4">
+              <span class="block text-3xl font-serif font-bold text-brand-dark">48</span>
+              <span class="text-xs sm:text-sm text-stone-500 uppercase tracking-wider">Culinary Awards</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4 pt-2">
+            <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=160&q=80" 
+                 alt="Executive Chef" 
+                 class="w-14 h-14 rounded-full object-cover ring-2 ring-brand-gold/60"
+                 onerror="this.src='https://placehold.co/120x120/1f2421/ffffff?text=Chef'"/>
+            <div>
+              <h4 class="font-serif font-bold text-base text-brand-dark">Mateo Rossi</h4>
+              <p class="text-xs text-stone-500">Executive Head Chef &amp; Co-Founder</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Collage -->
+        <div class="relative grid grid-cols-2 gap-4">
+          <div class="space-y-4">
+            <img src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=700&q=80" 
+                 alt="Kitchen Preparation" 
+                 class="w-full h-64 object-cover rounded-3xl shadow-lg"
+                 onerror="this.src='https://placehold.co/600x600/1f2421/ffffff?text=Kitchen'"/>
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=700&q=80" 
+                 alt="Gourmet Dish" 
+                 class="w-full h-48 object-cover rounded-3xl shadow-lg"
+                 onerror="this.src='https://placehold.co/600x400/1f2421/ffffff?text=Dishes'"/>
+          </div>
+          <div class="space-y-4 pt-8">
+            <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=700&q=80" 
+                 alt="Wine Pouring" 
+                 class="w-full h-48 object-cover rounded-3xl shadow-lg"
+                 onerror="this.src='https://placehold.co/600x400/1f2421/ffffff?text=Wine'"/>
+            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=700&q=80" 
+                 alt="Restaurant Seating" 
+                 class="w-full h-64 object-cover rounded-3xl shadow-lg"
+                 onerror="this.src='https://placehold.co/600x600/1f2421/ffffff?text=Interior'"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="specials" class="py-24 bg-brand-cream border-t border-stone-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-brand-amber uppercase tracking-wider font-semibold text-xs sm:text-sm">Chef's Signature</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-brand-dark mt-2 mb-4">Masterpiece Delicacies</h2>
+        <p class="text-stone-600">Specially crafted by Chef Mateo this week, celebrating coastal ingredients and wood-fired gastronomy.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Special Item 1 -->
+        <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 flex flex-col justify-between">
+          <div class="relative overflow-hidden h-64">
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=700&q=80" 
+                 alt="Wood-Fired Prime Ribeye" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.src='https://placehold.co/600x400/1f2421/ffffff?text=Prime+Ribeye'"/>
+            <span class="absolute top-4 right-4 bg-brand-dark/90 text-brand-gold text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-md">Chef's Choice</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-baseline mb-2">
+                <h3 class="font-serif text-xl font-bold text-brand-dark">A5 Wagyu &amp; Truffle Glaze</h3>
+                <span class="font-serif text-lg font-bold text-brand-amber">$58</span>
+              </div>
+              <p class="text-stone-500 text-sm mb-6 leading-relaxed">
+                Charred broccolini, bone marrow jus reduction, smoked sea salt flakes, and shaved black winter truffles.
+              </p>
+            </div>
+            <button onclick="addToCart('A5 Wagyu & Truffle Glaze', 58.00)" class="w-full py-2.5 px-4 rounded-xl border border-brand-amber text-brand-amber hover:bg-brand-amber hover:text-white font-medium text-sm transition-colors flex items-center justify-center space-x-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add to Tray</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Special Item 2 -->
+        <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 flex flex-col justify-between">
+          <div class="relative overflow-hidden h-64">
+            <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=700&q=80" 
+                 alt="Handcrafted Seafood Ravioli" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.src='https://placehold.co/600x400/1f2421/ffffff?text=Lobster+Ravioli'"/>
+            <span class="absolute top-4 right-4 bg-brand-dark/90 text-brand-gold text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-md">Seasonal</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-baseline mb-2">
+                <h3 class="font-serif text-xl font-bold text-brand-dark">Lobster &amp; Saffron Agnolotti</h3>
+                <span class="font-serif text-lg font-bold text-brand-amber">$42</span>
+              </div>
+              <p class="text-stone-500 text-sm mb-6 leading-relaxed">
+                Atlantic lobster meat, mascarpone, Meyer lemon butter emulsion, and crispy fennel fronds.
+              </p>
+            </div>
+            <button onclick="addToCart('Lobster & Saffron Agnolotti', 42.00)" class="w-full py-2.5 px-4 rounded-xl border border-brand-amber text-brand-amber hover:bg-brand-amber hover:text-white font-medium text-sm transition-colors flex items-center justify-center space-x-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add to Tray</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Special Item 3 -->
+        <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 flex flex-col justify-between">
+          <div class="relative overflow-hidden h-64">
+            <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=700&q=80" 
+                 alt="Artisanal Dessert" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                 onerror="this.src='https://placehold.co/600x400/1f2421/ffffff?text=Artisanal+Dessert'"/>
+            <span class="absolute top-4 right-4 bg-brand-dark/90 text-brand-gold text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-md">House Fav</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-baseline mb-2">
+                <h3 class="font-serif text-xl font-bold text-brand-dark">Valrhona Smoked Chocolate Dome</h3>
+                <span class="font-serif text-lg font-bold text-brand-amber">$21</span>
+              </div>
+              <p class="text-stone-500 text-sm mb-6 leading-relaxed">
+                Salted pistachio praline, raspberry coulis mist, and 24k edible gold leaf garnish.
+              </p>
+            </div>
+            <button onclick="addToCart('Valrhona Chocolate Dome', 21.00)" class="w-full py-2.5 px-4 rounded-xl border border-brand-amber text-brand-amber hover:bg-brand-amber hover:text-white font-medium text-sm transition-colors flex items-center justify-center space-x-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add to Tray</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="menu" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-brand-amber uppercase tracking-wider font-semibold text-xs sm:text-sm">A La Carte</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-brand-dark mt-2 mb-4">Explore Our Menu</h2>
+        <p class="text-stone-600">Fresh local produce thoughtfully paired with rare vintages and modern culinary art.</p>
+      </div>
+
+      <!-- Menu Category Filters -->
+      <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-12">
+        <button onclick="filterMenu('all')" class="menu-filter-btn px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 bg-brand-dark text-white shadow-md" data-category="all">
+          All Courses
+        </button>
+        <button onclick="filterMenu('starters')" class="menu-filter-btn px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="starters">
+          Starters &amp; Antipasti
+        </button>
+        <button onclick="filterMenu('main')" class="menu-filter-btn px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="main">
+          Main Courses
+        </button>
+        <button onclick="filterMenu('desserts')" class="menu-filter-btn px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="desserts">
+          Desserts
+        </button>
+        <button onclick="filterMenu('beverages')" class="menu-filter-btn px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="beverages">
+          Beverages &amp; Wine
+        </button>
+      </div>
+
+      <!-- Menu Items Grid -->
+      <div id="menuContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <!-- Starter 1 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="starters">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=600&q=80" 
+                   alt="Bruschetta" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Bruschetta'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Heirloom Tomato Tartare</h4>
+              <span class="font-serif font-bold text-brand-amber">$16.50</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Roasted sourdough, burrata cream, aged Modena balsamic, micro basil, and cold-pressed olive oil.
+            </p>
+          </div>
+          <button onclick="addToCart('Heirloom Tomato Tartare', 16.50)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+        <!-- Starter 2 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="starters">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=600&q=80" 
+                   alt="Wild Calamari" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Calamari'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Crisp Adriatic Calamari</h4>
+              <span class="font-serif font-bold text-brand-amber">$19.00</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Lightly dusted with polenta flour, served alongside charred lemon herb aioli and chili flakes.
+            </p>
+          </div>
+          <button onclick="addToCart('Crisp Adriatic Calamari', 19.00)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+        <!-- Main 1 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="main">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80" 
+                   alt="Wild Salmon" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Salmon'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Pan-Seared King Salmon</h4>
+              <span class="font-serif font-bold text-brand-amber">$34.00</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Asparagus velouté, fingerling potatoes, saffron beurre blanc, and pickled mustard seeds.
+            </p>
+          </div>
+          <button onclick="addToCart('Pan-Seared King Salmon', 34.00)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+        <!-- Main 2 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="main">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80" 
+                   alt="Wild Mushroom Pappardelle" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Pasta'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Wild Morel Pappardelle</h4>
+              <span class="font-serif font-bold text-brand-amber">$29.00</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Handmade egg ribbon pasta, porcini broth, pecorino romano, thyme sprigs, and hazelnut crumb.
+            </p>
+          </div>
+          <button onclick="addToCart('Wild Morel Pappardelle', 29.00)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+        <!-- Dessert 1 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="desserts">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=80" 
+                   alt="Tiramisu" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Tiramisu'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Classic Espresso Tiramisu</h4>
+              <span class="font-serif font-bold text-brand-amber">$14.00</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Savoiardi soaked in artisan roast espresso, Venetian mascarpone custard, dark cocoa dust.
+            </p>
+          </div>
+          <button onclick="addToCart('Classic Espresso Tiramisu', 14.00)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+        <!-- Beverage 1 -->
+        <div class="menu-card bg-brand-cream rounded-3xl p-5 border border-stone-200 transition-all hover:shadow-lg flex flex-col justify-between" data-category="beverages">
+          <div>
+            <div class="relative overflow-hidden rounded-2xl mb-4 h-48">
+              <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80" 
+                   alt="Cocktail" 
+                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                   onerror="this.src='https://placehold.co/400x300/282c28/ffffff?text=Beverage'"/>
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-serif text-lg font-bold text-brand-dark">Smoked Rosemary Negroni</h4>
+              <span class="font-serif font-bold text-brand-amber">$17.00</span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-600 mb-4">
+              Botanical dry gin, Campari, sweet vermouth, smoked cedar wood vapor, and Valencia orange peel.
+            </p>
+          </div>
+          <button onclick="addToCart('Smoked Rosemary Negroni', 17.00)" class="w-full py-2 bg-white hover:bg-brand-amber hover:text-white border border-stone-300 text-stone-800 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Add to Order</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="testimonials" class="py-24 bg-brand-dark text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-brand-gold uppercase tracking-wider font-semibold text-xs sm:text-sm">Guest Impressions</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold mt-2 mb-4">Words From Our Patrons</h2>
+        <p class="text-stone-400">Discover what makes dining at L'Aura an enduring memory for food enthusiasts worldwide.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Review 1 -->
+        <div class="bg-brand-charcoal/80 border border-white/5 rounded-3xl p-8 relative flex flex-col justify-between">
+          <div>
+            <div class="flex space-x-1 text-brand-gold mb-6">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-stone-300 text-sm leading-relaxed italic mb-8">
+              "The lobster agnolotti blew my expectations away. You can taste the artistry in every bite. Easily the top culinary destination in the city."
+            </p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" 
+                 alt="Patron" 
+                 class="w-12 h-12 rounded-full object-cover ring-2 ring-brand-gold"
+                 onerror="this.src='https://placehold.co/100x100/333333/ffffff?text=Guest'"/>
+            <div>
+              <h4 class="font-serif font-bold text-white text-base">Elena Vance</h4>
+              <p class="text-xs text-stone-400">Food &amp; Lifestyle Critic</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="bg-brand-charcoal/80 border border-white/5 rounded-3xl p-8 relative flex flex-col justify-between">
+          <div>
+            <div class="flex space-x-1 text-brand-gold mb-6">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-stone-300 text-sm leading-relaxed italic mb-8">
+              "Impeccable service, cozy fireplace ambiance, and an extraordinary sommelier recommendation. We held our anniversary dinner here and it was magical."
+            </p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" 
+                 alt="Patron" 
+                 class="w-12 h-12 rounded-full object-cover ring-2 ring-brand-gold"
+                 onerror="this.src='https://placehold.co/100x100/333333/ffffff?text=Guest'"/>
+            <div>
+              <h4 class="font-serif font-bold text-white text-base">David Sterling</h4>
+              <p class="text-xs text-stone-400">Verified Diner</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="bg-brand-charcoal/80 border border-white/5 rounded-3xl p-8 relative flex flex-col justify-between">
+          <div>
+            <div class="flex space-x-1 text-brand-gold mb-6">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-stone-300 text-sm leading-relaxed italic mb-8">
+              "The smoke dome chocolate dessert is pure theatrical joy. The attention to detail from the kitchen team is extraordinary."
+            </p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80" 
+                 alt="Patron" 
+                 class="w-12 h-12 rounded-full object-cover ring-2 ring-brand-gold"
+                 onerror="this.src='https://placehold.co/100x100/333333/ffffff?text=Guest'"/>
+            <div>
+              <h4 class="font-serif font-bold text-white text-base">Chloe Dupont</h4>
+              <p class="text-xs text-stone-400">Sommelier &amp; Blogger</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="py-24 bg-white relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-brand-dark rounded-3xl p-8 sm:p-14 text-white shadow-2xl relative overflow-hidden">
+        <!-- Background Accents -->
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-brand-amber/10 blur-3xl pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span class="text-brand-gold uppercase tracking-wider font-semibold text-xs sm:text-sm">Reservations</span>
+            <h2 class="font-serif text-3xl sm:text-5xl font-bold mt-2 mb-6">Reserve Your Table for Tonight</h2>
+            <p class="text-stone-300 leading-relaxed mb-8">
+              Whether celebrating a milestone or seeking an intimate evening with family, our warm hospitality awaits. We accommodate special dietary needs with prior notice.
+            </p>
+            
+            <div class="space-y-4 text-stone-300 text-sm">
+              <div class="flex items-center space-x-3">
+                <i data-lucide="map-pin" class="w-5 h-5 text-brand-gold flex-shrink-0"></i>
+                <span>428 Montrose Boulevard, Suite 100, Houston, TX 77006</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i data-lucide="phone" class="w-5 h-5 text-brand-gold flex-shrink-0"></i>
+                <span>+1 (713) 555-8942</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <i data-lucide="mail" class="w-5 h-5 text-brand-gold flex-shrink-0"></i>
+                <span>concierge@laurabistro.com</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Reservation Inline Form -->
+          <div class="bg-white/5 p-6 sm:p-8 rounded-3xl border border-white/10 backdrop-blur-md">
+            <form id="quickReservationForm" onsubmit="handleReservationSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-1">Full Name</label>
+                <input type="text" required placeholder="John Doe" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-stone-400 focus:outline-none focus:border-brand-gold transition" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-1">Date</label>
+                  <input type="date" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-1">Time</label>
+                  <select required class="w-full bg-brand-charcoal border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition">
+                    <option value="17:00">5:00 PM</option>
+                    <option value="18:30">6:30 PM</option>
+                    <option value="20:00" selected>8:00 PM</option>
+                    <option value="21:30">9:30 PM</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-1">Guests</label>
+                <select required class="w-full bg-brand-charcoal border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition">
+                  <option value="1">1 Guest (Bar counter)</option>
+                  <option value="2" selected>2 Guests (Standard)</option>
+                  <option value="4">4 Guests (Booth)</option>
+                  <option value="6">6+ Guests (Private dining)</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full py-3 bg-brand-gold hover:bg-yellow-500 text-brand-dark font-bold text-sm rounded-xl transition shadow-lg shadow-brand-gold/20 flex items-center justify-center space-x-2">
+                <span>Confirm Booking Request</span>
+                <i data-lucide="check" class="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="reservationModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onclick="closeReservationModal()"></div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      
+      <div class="inline-block align-bottom bg-brand-cream rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full p-8 border border-stone-200">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="font-serif text-2xl font-bold text-brand-dark">Reserve Your Experience</h3>
+            <p class="text-xs text-stone-500">Instant confirmation via SMS &amp; Email</p>
+          </div>
+          <button onclick="closeReservationModal()" class="text-stone-400 hover:text-stone-700 p-1.5 rounded-lg">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <form onsubmit="handleReservationSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Your Name</label>
+            <input type="text" required placeholder="Alexander Wright" class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Phone Number</label>
+              <input type="tel" required placeholder="(555) 000-1234" class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Party Size</label>
+              <select class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold">
+                <option value="2">2 Guests</option>
+                <option value="3">3 Guests</option>
+                <option value="4">4 Guests</option>
+                <option value="6">6+ Guests</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Date</label>
+              <input type="date" required class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Preferred Time</label>
+              <input type="time" required value="19:30" class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Special Occasion or Dietary Note</label>
+            <textarea rows="2" placeholder="Anniversary, Nut Allergy, Window Seating..." class="w-full bg-white border border-stone-300 rounded-xl px-4 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-gold"></textarea>
+          </div>
+          <button type="submit" class="w-full py-3.5 bg-brand-amber hover:bg-orange-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-brand-amber/30 flex items-center justify-center space-x-2">
+            <span>Confirm Reservation</span>
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-brand-dark text-stone-400 pt-16 pb-12 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <!-- Brand Info -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-full bg-brand-amber flex items-center justify-center text-white">
+              <i data-lucide="chef-hat" class="w-4 h-4"></i>
+            </span>
+            <span class="font-serif font-bold text-xl text-white tracking-wider">L'AURA</span>
+          </div>
+          <p class="text-xs sm:text-sm text-stone-400 leading-relaxed">
+            Elevated dining built upon Mediterranean heritage, sustainable farming, and contemporary culinary craft.
+          </p>
+          <div class="flex space-x-3 text-stone-400">
+            <a href="#" class="w-9 h-9 rounded-full bg-white/5 hover:bg-brand-gold hover:text-brand-dark flex items-center justify-center transition-colors" aria-label="Instagram">
+              <i data-lucide="instagram" class="w-4 h-4"></i>
+            </a>
+            <a href="#" class="w-9 h-9 rounded-full bg-white/5 hover:bg-brand-gold hover:text-brand-dark flex items-center justify-center transition-colors" aria-label="Facebook">
+              <i data-lucide="facebook" class="w-4 h-4"></i>
+            </a>
+            <a href="#" class="w-9 h-9 rounded-full bg-white/5 hover:bg-brand-gold hover:text-brand-dark flex items-center justify-center transition-colors" aria-label="Twitter">
+              <i data-lucide="twitter" class="w-4 h-4"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Hours of Operation -->
+        <div>
+          <h4 class="font-serif text-white font-bold text-base mb-4">Hours of Service</h4>
+          <ul class="space-y-2 text-xs sm:text-sm">
+            <li class="flex justify-between"><span>Mon:</span> <span class="text-stone-500">Closed (Private events)</span></li>
+            <li class="flex justify-between"><span>Tue - Thu:</span> <span class="text-stone-200">5:00 PM – 10:30 PM</span></li>
+            <li class="flex justify-between"><span>Fri - Sat:</span> <span class="text-stone-200">5:00 PM – 11:30 PM</span></li>
+            <li class="flex justify-between"><span>Sunday:</span> <span class="text-stone-200">4:30 PM – 10:00 PM</span></li>
+          </ul>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="font-serif text-white font-bold text-base mb-4">Quick Navigation</h4>
+          <ul class="space-y-2 text-xs sm:text-sm">
+            <li><a href="#home" class="hover:text-brand-gold transition-colors">Home Experience</a></li>
+            <li><a href="#about" class="hover:text-brand-gold transition-colors">Culinary Heritage</a></li>
+            <li><a href="#menu" class="hover:text-brand-gold transition-colors">Seasonal Menu</a></li>
+            <li><a href="#specials" class="hover:text-brand-gold transition-colors">Chef's Curations</a></li>
+            <li><a href="javascript:void(0)" onclick="openReservationModal()" class="hover:text-brand-gold transition-colors">Private Dining &amp; Parties</a></li>
+          </ul>
+        </div>
+
+        <!-- Apache 2 Server Readiness & Newsletter -->
+        <div>
+          <h4 class="font-serif text-white font-bold text-base mb-4">Subscribe for Vintages</h4>
+          <p class="text-xs text-stone-400 mb-3">Join our private registry for seasonal tasting invites and wine releases.</p>
+          <form onsubmit="handleNewsletter(event)" class="space-y-2">
+            <input type="email" required placeholder="sommelier@guest.com" class="w-full bg-white/10 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-stone-400 focus:outline-none focus:border-brand-gold" />
+            <button type="submit" class="w-full py-2 bg-brand-gold text-brand-dark rounded-xl text-xs font-bold hover:bg-yellow-500 transition">
+              Subscribe
+            </button>
+          </form>
+          <div class="mt-4 pt-3 border-t border-white/5 flex items-center space-x-2 text-[11px] text-stone-500">
+            <i data-lucide="server" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Apache 2 Optimized Static File</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-white/5 text-center text-xs text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p>&copy; 2026 L'Aura Artisanal Bistro Inc. All rights reserved.</p>
+        <p class="text-[11px]">Ready for deployment in <code>/var/www/html/</code></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // State management for Order Tray
+    let cart = [];
+
+    // Initialize Lucide Icons
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+
+    // Mobile Menu Toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Reservation Modal Handlers
+    function openReservationModal() {
+      document.getElementById('reservationModal').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeReservationModal() {
+      document.getElementById('reservationModal').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Cart Drawer Toggle
+    function toggleCart() {
+      const cartModal = document.getElementById('cartModal');
+      cartModal.classList.toggle('hidden');
+      document.body.classList.toggle('overflow-hidden');
+    }
+
+    // Interactive Menu Filter
+    function filterMenu(category) {
+      const buttons = document.querySelectorAll('.menu-filter-btn');
+      const cards = document.querySelectorAll('.menu-card');
+
+      // Update button styling
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-category') === category) {
+          btn.classList.remove('bg-stone-100', 'text-stone-600', 'hover:bg-stone-200');
+          btn.classList.add('bg-brand-dark', 'text-white', 'shadow-md');
+        } else {
+          btn.classList.remove('bg-brand-dark', 'text-white', 'shadow-md');
+          btn.classList.add('bg-stone-100', 'text-stone-600', 'hover:bg-stone-200');
+        }
+      });
+
+      // Show/Hide Cards
+      cards.forEach(card => {
+        const itemCategory = card.getAttribute('data-category');
+        if (category === 'all' || itemCategory === category) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Add Item to Order Tray
+    function addToCart(title, price) {
+      const existing = cart.find(item => item.title === title);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ title, price, quantity: 1 });
+      }
+      updateCartUI();
+      showToast('Item Added', `${title} was added to your order.`);
+    }
+
+    // Remove Item from Tray
+    function removeFromCart(title) {
+      cart = cart.filter(item => item.title !== title);
+      updateCartUI();
+      showToast('Item Removed', `${title} was removed.`);
+    }
+
+    // Refresh Cart UI
+    function updateCartUI() {
+      const cartCountEl = document.getElementById('cartCount');
+      const cartBadgeEl = document.getElementById('cartBadge');
+      const cartTotalEl = document.getElementById('cartTotal');
+      const cartListEl = document.getElementById('cartItemsList');
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      cartCountEl.textContent = totalItems;
+      cartBadgeEl.textContent = totalItems;
+      cartTotalEl.textContent = `$${totalPrice.toFixed(2)}`;
+
+      if (cart.length === 0) {
+        cartListEl.innerHTML = `
+          <div class="text-center py-16 text-stone-400">
+            <i data-lucide="utensils" class="w-12 h-12 mx-auto mb-3 opacity-40"></i>
+            <p>Your culinary tray is empty.</p>
+          </div>
+        `;
+      } else {
+        cartListEl.innerHTML = cart.map(item => `
+          <div class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-stone-200 shadow-sm">
+            <div>
+              <h5 class="font-serif font-bold text-sm text-brand-dark">${item.title}</h5>
+              <span class="text-xs text-stone-500">$${item.price.toFixed(2)} &times; ${item.quantity}</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="font-bold text-sm text-brand-amber">$${(item.price * item.quantity).toFixed(2)}</span>
+              <button onclick="removeFromCart('${item.title}')" class="text-stone-400 hover:text-red-500 transition-colors p-1" title="Remove item">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    // Checkout Order Simulation
+    function checkoutOrder() {
+      if (cart.length === 0) {
+        showToast('Empty Tray', 'Please add items before placing an order.');
+        return;
+      }
+      toggleCart();
+      showToast('Order Received', 'Your order has been routed directly to the kitchen!');
+      cart = [];
+      updateCartUI();
+    }
+
+    // Reservation Form Submission
+    function handleReservationSubmit(event) {
+      event.preventDefault();
+      closeReservationModal();
+      showToast('Reservation Confirmed', 'A confirmation SMS has been dispatched to your device.');
+      event.target.reset();
+    }
+
+    // Newsletter Submission
+    function handleNewsletter(event) {
+      event.preventDefault();
+      showToast('Subscribed', 'Thank you for joining our private culinary register.');
+      event.target.reset();
+    }
+
+    // Custom Toast Notification Function (Replaces alert())
+    function showToast(title, message) {
+      const toast = document.getElementById('toastNotification');
+      const titleEl = document.getElementById('toastTitle');
+      const msgEl = document.getElementById('toastMessage');
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      toast.classList.remove('translate-y-32', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-32', 'opacity-0');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
